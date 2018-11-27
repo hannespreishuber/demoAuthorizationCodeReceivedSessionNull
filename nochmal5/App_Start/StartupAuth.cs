@@ -14,6 +14,7 @@ using Microsoft.Owin.Security.OpenIdConnect;
 using Owin;
 using nochmal5.Models;
 using System.Web.SessionState;
+using Microsoft.IdentityModel.Tokens;
 
 namespace nochmal5
 {
@@ -32,7 +33,7 @@ namespace nochmal5
         {
             app.SetDefaultSignInAsAuthenticationType(CookieAuthenticationDefaults.AuthenticationType);
 
-            app.UseCookieAuthentication(new CookieAuthenticationOptions { });
+            app.UseCookieAuthentication(new CookieAuthenticationOptions());
 
             // anstatt die Standardüberprüfung (Überprüfung anhand eines Ausstellerwerts wie in Branchen-Apps) zu verwenden, 
             // wird eigene mehrinstanzenfähige Überprüfungslogik eingefügt
@@ -42,7 +43,7 @@ namespace nochmal5
                    
                     ClientId = clientId,
                     Authority = authority,
-                    TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = false,
                         // Wenn die App Zugriff auf die gesamte Organisation benötigt, dann fügen Sie die Logik
@@ -62,7 +63,7 @@ namespace nochmal5
                         {
                             var code = context.Code;
                             var ctx = context.OwinContext.Environment["System.Web.HttpContextBase"] as HttpContextBase;
-
+                            var s = ctx.Session;
                             ClientCredential credential = new ClientCredential(clientId, appKey);
                             string tenantID = context.AuthenticationTicket.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid").Value;
                             string signedInUserID = context.AuthenticationTicket.Identity.FindFirst(ClaimTypes.NameIdentifier).Value;
@@ -79,15 +80,17 @@ namespace nochmal5
             // Auf diese Weise wird Middleware, die oberhalb dieser Zeile definiert ist, ausgeführt, bevor die Autorisierungsregel in "web.config" angewendet wird.
             app.UseStageMarker(PipelineStage.Authenticate);
 
-            app.Use((context, next) =>
-            {
-                var httpContext = context.Get<HttpContextBase>(typeof(HttpContextBase).FullName);
-                httpContext.SetSessionStateBehavior(SessionStateBehavior.Required);
-                return next();
-            });
 
-            // To make sure the above `Use` is in the correct position:
-            app.UseStageMarker(PipelineStage.AcquireState);
+//überflüssig
+            //app.Use((context, next) =>
+            //{
+            //    var httpContext = context.Get<HttpContextBase>(typeof(HttpContextBase).FullName);
+            //    httpContext.SetSessionStateBehavior(SessionStateBehavior.Required);
+            //    return next();
+            //});
+
+            //// To make sure the above `Use` is in the correct position:
+            //app.UseStageMarker(PipelineStage.AcquireState);
         }
 
         private static string EnsureTrailingSlash(string value)

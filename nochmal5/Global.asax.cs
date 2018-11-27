@@ -15,7 +15,8 @@ namespace nochmal5
         void Application_Start(object sender, EventArgs e)
         {
             // Code, der beim Anwendungsstart ausgeführt wird
-            AreaRegistration.RegisterAllAreas();            
+            AreaRegistration.RegisterAllAreas();
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
         }
